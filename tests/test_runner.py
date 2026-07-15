@@ -141,6 +141,20 @@ class TestAntiCheat:
         assert exp.error is not None and "align" in exp.error.lower()
 
 
+class TestRelativePaths:
+    def test_runs_with_cwd_relative_paths(self, comp_dir: Path, tmp_path: Path, monkeypatch) -> None:
+        # The CLI passes cwd-relative paths (--root defaults to "."), but the
+        # child subprocess runs with cwd=exp_dir; the runner must resolve every
+        # path it hands to the child.
+        monkeypatch.chdir(tmp_path)
+        comp = load_bundle(Path("competitions") / "test-comp")
+        ledger = Ledger(Path("ledger.db"))
+        budget = Budget(per_experiment_seconds=120)
+        exp_dir = make_exp(Path("experiments") / "test-comp", "e0001", MEAN_RUN)
+        exp = execute_experiment(comp, exp_dir, ledger, budget)
+        assert exp.status == "completed", exp.error
+
+
 class TestQueueDiscipline:
     def test_budget_exhaustion_blocks_queue(self, env) -> None:
         comp, ledger, _, exp_root = env

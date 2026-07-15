@@ -90,7 +90,9 @@ def execute_experiment(
     final: bool = False,
 ) -> Experiment:
     """Queue and execute one experiment; returns the final ledger row."""
-    exp_dir = Path(exp_dir)
+    # resolve: the child runs with cwd=exp_dir, so relative paths (as passed
+    # by the CLI, whose --root defaults to ".") would not survive the hop
+    exp_dir = Path(exp_dir).resolve()
     meta = _read_meta(exp_dir)
 
     budget.check_can_queue(used=len(ledger.list(comp.slug)), final=final)
@@ -132,8 +134,8 @@ def execute_experiment(
 
     payload = {
         "exp_dir": str(exp_dir),
-        "train_path": str(comp.files["train"]),
-        "test_path": str(comp.files["test"]),
+        "train_path": str(comp.files["train"].resolve()),
+        "test_path": str(comp.files["test"].resolve()),
         "id_column": comp.id_column,
         "metric": comp.metric,
         "folds": [[t.tolist(), v.tolist()] for t, v in plan.folds],
