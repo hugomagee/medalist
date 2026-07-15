@@ -1,0 +1,16 @@
+slug: playground-s3e14
+title: "Prediction of Wild Blueberry Yield (Playground S3E14)"
+metric: mae
+metric_direction: minimize
+target_column: yield
+id_column: id
+files:
+  train: data/train.csv
+  test: data/test.csv
+  sample_submission: data/sample_submission.csv
+cv_policy: auto
+cv_params: {n_splits: 5, seed: 42}
+time_column: null
+group_column: null
+leaderboard: private/leaderboard.csv
+private_labels: private/solution.csv

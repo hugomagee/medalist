@@ -27,3 +27,21 @@
   `solution.csv`/`leaderboard.csv` must be assembled by the human (SPEC §11)
   before that comp can be graded. M5 uses a synthetic competition, so this
   does not block M1–M5.
+- **2026-07-15 (M6)** Kaggle does not publish Playground private test labels,
+  so `playground-s3e14` cannot be graded against the true private test set.
+  Adaptation (`scripts/prepare_playground_s3e14.py`, seed 42, run BEFORE the
+  agent loop saw any data): a 20% holdout (3,058 rows) was carved from the
+  original train; the agent trains/CVs only on the remaining 80% (12,231
+  rows). The holdout's features are the operative `data/test.csv`, its labels
+  are `private/solution.csv`, and the originals were moved to
+  `private/original_*.csv` (unreadable to experiments; untouched by the
+  agent). The final submission is graded on holdout MAE and located in the
+  real final private LB (`private/leaderboard.csv`, 1,877 teams).
+  **The reported rank/percentile/medal is therefore an ESTIMATE**: the holdout
+  is drawn from the train distribution, not the true private test set, and LB
+  teams optimized against Kaggle's own test split. Holdout MAE is also noisier
+  (3,058 rows vs Kaggle's ~6.9k private test rows).
+- **2026-07-15 (M6)** The Kaggle leaderboard export had a UTF-8 BOM and a
+  capital-S `Score` column; grading expects a lowercase `score` column
+  (competitions/README.md), so the prep script normalized the file in place
+  (BOM stripped, `Score` → `score`, other columns kept).
