@@ -8,7 +8,10 @@ from pathlib import Path
 import typer
 import yaml
 
+from core.budget import Budget, BudgetExhausted
 from core.competition import BundleError, load_bundle
+from core.ledger import Ledger, LedgerError
+from core.runner import execute_experiment
 
 app = typer.Typer(no_args_is_help=True, help="medalist: autonomous ML competition harness")
 
@@ -79,18 +82,71 @@ def eda(slug: str) -> None:
     raise typer.Exit(code=2)
 
 
-@app.command()
-def run(slug: str, exp: str = typer.Option(..., help="experiment id, e.g. e0007")) -> None:
-    """Execute one experiment. (Lands in M2.)"""
-    typer.echo("run: not implemented until M2", err=True)
-    raise typer.Exit(code=2)
+def _load_budget(root: Path) -> "Budget":
+    budget_path = root / "budget.yaml"
+    if budget_path.is_file():
+        raw = yaml.safe_load(budget_path.read_text()) or {}
+        return Budget(**raw)
+    return Budget()
+
+
+def _elapsed(ledger: "Ledger", slug: str) -> float:
+    return sum(e.wall_seconds or 0.0 for e in ledger.list(slug))
 
 
 @app.command()
-def status(slug: str) -> None:
-    """Ledger summary + budget remaining. (Lands in M2.)"""
-    typer.echo("status: not implemented until M2", err=True)
-    raise typer.Exit(code=2)
+def run(
+    slug: str,
+    exp: str = typer.Option(..., help="experiment id, e.g. e0007"),
+    root: Path = typer.Option(Path("."), help="repo root (ledger.db, experiments/)"),
+    final: bool = typer.Option(False, help="use a reserved budget slot (final ensemble)"),
+) -> None:
+    """Execute one experiment."""
+    try:
+        comp = load_bundle(_comp_dir(slug, root))
+    except BundleError as exc:
+        typer.echo(f"INVALID: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    ledger = Ledger(root / "ledger.db")
+    budget = _load_budget(root)
+    exp_dir = root / "experiments" / comp.slug / exp
+    try:
+        record = execute_experiment(comp, exp_dir, ledger, budget, final=final)
+    except (BudgetExhausted, LedgerError) as exc:
+        typer.echo(f"REFUSED: {exc}", err=True)
+        typer.echo(budget.summary(len(ledger.list(comp.slug)), _elapsed(ledger, comp.slug)))
+        raise typer.Exit(code=1) from exc
+    typer.echo(
+        f"{record.exp_id}: {record.status}"
+        + (f" cv={record.cv_score_mean:.6f} ±{record.cv_score_std:.6f}"
+           if record.cv_score_mean is not None else "")
+        + (f" ({record.error})" if record.error else "")
+    )
+    typer.echo(budget.summary(len(ledger.list(comp.slug)), _elapsed(ledger, comp.slug)))
+    if record.status != "completed":
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def status(
+    slug: str,
+    root: Path = typer.Option(Path("."), help="repo root (ledger.db, experiments/)"),
+) -> None:
+    """Ledger summary + budget remaining."""
+    comp = load_bundle(_comp_dir(slug, root))
+    ledger = Ledger(root / "ledger.db")
+    budget = _load_budget(root)
+    experiments = ledger.list(comp.slug)
+    for e in experiments:
+        line = f"{e.exp_id}  {e.status:9s}"
+        if e.cv_score_mean is not None:
+            line += f"  cv={e.cv_score_mean:.6f}"
+        line += f"  {e.hypothesis[:60]}"
+        typer.echo(line)
+    best = ledger.best(comp.slug, comp.metric_direction)
+    if best is not None:
+        typer.echo(f"best: {best.exp_id} cv={best.cv_score_mean:.6f} ({comp.metric})")
+    typer.echo(budget.summary(len(experiments), _elapsed(ledger, comp.slug)))
 
 
 @app.command()

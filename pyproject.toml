@@ -49,6 +49,10 @@ target-version = "py312"
 python_version = "3.12"
 
 [[tool.mypy.overrides]]
+module = ["sklearn.*", "lightgbm.*", "xgboost.*", "catboost.*", "optuna.*", "matplotlib.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
 module = "core.*"
 strict = true
 
