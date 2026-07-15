@@ -10,7 +10,9 @@ import yaml
 
 from core.budget import Budget, BudgetExhausted
 from core.competition import BundleError, load_bundle
+from core.eda import write_eda_report
 from core.ledger import Ledger, LedgerError
+from core.memory import write_memory
 from core.runner import execute_experiment
 
 app = typer.Typer(no_args_is_help=True, help="medalist: autonomous ML competition harness")
@@ -76,10 +78,14 @@ def validate(slug: str) -> None:
 
 
 @app.command()
-def eda(slug: str) -> None:
-    """Write reports/<slug>/eda.md. (Lands in M3.)"""
-    typer.echo("eda: not implemented until M3", err=True)
-    raise typer.Exit(code=2)
+def eda(
+    slug: str,
+    root: Path = typer.Option(Path("."), help="repo root (reports/ written here)"),
+) -> None:
+    """Write reports/<slug>/eda.md."""
+    comp = load_bundle(_comp_dir(slug, root))
+    path = write_eda_report(comp, root / "reports" / comp.slug)
+    typer.echo(f"wrote {path}")
 
 
 def _load_budget(root: Path) -> "Budget":
@@ -150,10 +156,15 @@ def status(
 
 
 @app.command()
-def memory(slug: str) -> None:
-    """Regenerate MEMORY.md. (Lands in M3.)"""
-    typer.echo("memory: not implemented until M3", err=True)
-    raise typer.Exit(code=2)
+def memory(
+    slug: str,
+    root: Path = typer.Option(Path("."), help="repo root (ledger.db lives here)"),
+) -> None:
+    """Regenerate MEMORY.md."""
+    comp = load_bundle(_comp_dir(slug, root))
+    ledger = Ledger(root / "ledger.db")
+    path = write_memory(comp, ledger, _load_budget(root))
+    typer.echo(f"wrote {path}")
 
 
 @app.command()

@@ -1,0 +1,32 @@
+# EDA — {{ comp.title }} (`{{ comp.slug }}`)
+
+Train: {{ n_train }} rows · Test: {{ n_test }} rows · Metric: {{ comp.metric }} ({{ comp.metric_direction }})
+
+## Columns: dtype, missingness, cardinality
+
+| column | dtype | missing % (train) | missing % (test) | cardinality |
+|---|---|---|---|---|
+{% for c in columns -%}
+| {{ c.name }} | {{ c.dtype }} | {{ "%.2f" | format(c.missing_train) }} | {{ c.missing_test }} | {{ c.cardinality }} |
+{% endfor %}
+
+## Target: `{{ comp.target_column }}`
+
+- mean {{ "%.4f" | format(target.mean) }}, std {{ "%.4f" | format(target.std) }}
+- min {{ "%.4f" | format(target.min) }}, max {{ "%.4f" | format(target.max) }}
+- distinct values: {{ target.nunique }}{% if target.looks_classification %} (looks like classification){% endif %}
+
+## Correlation with target (numeric features)
+
+| feature | pearson r |
+|---|---|
+{% for name, r in correlations -%}
+| {{ name }} | {{ "%.4f" | format(r) }} |
+{% endfor %}
+
+## Train/test drift
+
+Adversarial validation AUC (0.5 = indistinguishable, 1.0 = fully separable): **{{ "%.4f" | format(adversarial_auc) }}**
+{% if adversarial_auc > 0.7 %}
+⚠ Noticeable drift — trust CV over any train-distribution intuition, and inspect the most drift-driving features.
+{% endif %}

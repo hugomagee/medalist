@@ -1,0 +1,43 @@
+# MEMORY — `{{ comp.slug }}`
+
+Metric: {{ comp.metric }} ({{ comp.metric_direction }})
+
+## Top {{ top|length }} experiments by CV score
+
+| exp | cv mean | cv std | family | hypothesis |
+|---|---|---|---|---|
+{% for e in top -%}
+| {{ e.exp_id }} | {{ "%.6f" | format(e.cv_score_mean) }} | {{ "%.6f" | format(e.cv_score_std) }} | {{ e.family }} | {{ e.hypothesis | truncate(80) }} |
+{% endfor %}
+
+## Last {{ last|length }} attempted
+
+| exp | status | cv mean | hypothesis |
+|---|---|---|---|
+{% for e in last -%}
+| {{ e.exp_id }} | {{ e.status }} | {{ "%.6f" | format(e.cv_score_mean) if e.cv_score_mean is not none else "—" }} | {{ e.hypothesis | truncate(80) }} |
+{% endfor %}
+
+## Graveyard — do not retry these families
+
+{% if graveyard -%}
+{% for family, count in graveyard -%}
+- `{{ family }}` — failed {{ count }} times
+{% endfor -%}
+{% else -%}
+(empty)
+{% endif %}
+
+## Current best
+
+{% if best -%}
+- experiment: {{ best.exp_id }} (cv {{ "%.6f" | format(best.cv_score_mean) }})
+- submission source: {{ best.artifact_dir }}/test_pred.parquet
+- notes: {{ best.notes or "—" }}
+{% else -%}
+No completed experiment yet.
+{% endif %}
+
+## Budget
+
+{{ budget_summary }}
