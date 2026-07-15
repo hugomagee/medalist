@@ -69,6 +69,37 @@ def test_status_summarises_ledger_and_budget(comp_dir: Path, tmp_path: Path) -> 
     assert "budget" in result.output.lower()
 
 
+def test_submit_builds_submission_from_best(comp_dir: Path, tmp_path: Path) -> None:
+    root = _setup_repo(tmp_path, comp_dir)
+    runner.invoke(app, ["run", comp_dir.name, "--exp", "e0001", "--root", str(root)])
+    result = runner.invoke(app, ["submit", comp_dir.name, "--root", str(root)])
+    assert result.exit_code == 0, result.output
+    assert (root / "reports" / comp_dir.name / "submission.csv").exists()
+
+
+def test_grade_writes_result_md(comp_dir: Path, tmp_path: Path) -> None:
+    import pandas as pd
+
+    from tests.conftest import write_bundle
+
+    private = comp_dir / "private"
+    private.mkdir()
+    pd.DataFrame({"id": range(20, 30), "yield": [105.0] * 10}).to_csv(
+        private / "solution.csv", index=False
+    )
+    pd.DataFrame({"score": [1.0, 5.0, 10.0]}).to_csv(private / "leaderboard.csv", index=False)
+    write_bundle(
+        comp_dir, leaderboard="private/leaderboard.csv", private_labels="private/solution.csv"
+    )
+    root = _setup_repo(tmp_path, comp_dir)
+    runner.invoke(app, ["run", comp_dir.name, "--exp", "e0001", "--root", str(root)])
+    runner.invoke(app, ["submit", comp_dir.name, "--root", str(root)])
+    result = runner.invoke(app, ["grade", comp_dir.name, "--root", str(root)])
+    assert result.exit_code == 0, result.output
+    assert (root / "reports" / comp_dir.name / "RESULT.md").exists()
+    assert "percentile" in result.output.lower() or "rank" in result.output.lower()
+
+
 def test_init_scaffolds_competition_dir(tmp_path: Path) -> None:
     result = runner.invoke(app, ["init", "my-comp", "--root", str(tmp_path)])
     assert result.exit_code == 0

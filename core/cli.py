@@ -14,6 +14,12 @@ from core.eda import write_eda_report
 from core.ledger import Ledger, LedgerError
 from core.memory import write_memory
 from core.runner import execute_experiment
+from core.submission import (
+    SubmissionError,
+    build_submission,
+    grade_submission,
+    write_result_report,
+)
 
 app = typer.Typer(no_args_is_help=True, help="medalist: autonomous ML competition harness")
 
@@ -168,17 +174,56 @@ def memory(
 
 
 @app.command()
-def submit(slug: str) -> None:
-    """Build + validate submission from best/ensemble. (Lands in M4.)"""
-    typer.echo("submit: not implemented until M4", err=True)
-    raise typer.Exit(code=2)
+def submit(
+    slug: str,
+    root: Path = typer.Option(Path("."), help="repo root"),
+    exp: str = typer.Option(None, help="experiment id; defaults to the best completed"),
+) -> None:
+    """Build + validate submission from the best experiment (or a chosen one)."""
+    comp = load_bundle(_comp_dir(slug, root))
+    ledger = Ledger(root / "ledger.db")
+    record = ledger.get(exp) if exp else ledger.best(comp.slug, comp.metric_direction)
+    if record is None or record.artifact_dir is None:
+        typer.echo("REFUSED: no completed experiment to submit from", err=True)
+        raise typer.Exit(code=1)
+    try:
+        out = build_submission(
+            comp,
+            Path(record.artifact_dir) / "test_pred.parquet",
+            root / "reports" / comp.slug / "submission.csv",
+        )
+    except SubmissionError as exc:
+        typer.echo(f"INVALID: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"wrote {out} from {record.exp_id} (cv={record.cv_score_mean:.6f})")
+    budget = _load_budget(root)
+    typer.echo(budget.summary(len(ledger.list(comp.slug)), _elapsed(ledger, comp.slug)))
 
 
 @app.command()
-def grade(slug: str) -> None:
-    """Historical comps: score vs private LB. (Lands in M4.)"""
-    typer.echo("grade: not implemented until M4", err=True)
-    raise typer.Exit(code=2)
+def grade(
+    slug: str,
+    root: Path = typer.Option(Path("."), help="repo root"),
+) -> None:
+    """Historical comps: score the submission vs the private leaderboard."""
+    comp = load_bundle(_comp_dir(slug, root))
+    submission_path = root / "reports" / comp.slug / "submission.csv"
+    if not submission_path.is_file():
+        typer.echo(f"REFUSED: no submission at {submission_path}; run submit first", err=True)
+        raise typer.Exit(code=1)
+    ledger = Ledger(root / "ledger.db")
+    budget = _load_budget(root)
+    try:
+        result = grade_submission(comp, submission_path)
+    except SubmissionError as exc:
+        typer.echo(f"CANNOT GRADE: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    report = write_result_report(comp, result, ledger, budget, root / "reports" / comp.slug)
+    typer.echo(
+        f"score={result.score:.6f} rank={result.rank}/{result.n_teams} "
+        f"percentile=top {result.percentile * 100:.1f}% medal={result.medal or 'none'}"
+    )
+    typer.echo(f"wrote {report}")
 
 
 if __name__ == "__main__":

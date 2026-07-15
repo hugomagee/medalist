@@ -1,0 +1,26 @@
+# RESULT — {{ comp.title }} (`{{ comp.slug }}`)
+
+## Final grade
+
+| | |
+|---|---|
+| metric | {{ comp.metric }} ({{ comp.metric_direction }}) |
+| private score | **{{ "%.6f" | format(grade.score) }}** |
+| rank-equivalent | {{ grade.rank }} of {{ grade.n_teams }} teams |
+| percentile | top {{ "%.1f" | format(grade.percentile * 100) }}% |
+| medal band | {{ grade.medal or "none" }} |
+
+## Budget consumed
+
+- experiments: {{ n_experiments }} of {{ budget.max_experiments }} ({{ n_completed }} completed)
+- wall clock: {{ "%.0f" | format(elapsed) }}s of {{ "%.0f" | format(budget.total_wall_seconds) }}s
+
+## Score progression
+
+![score vs experiment](progression.png)
+
+## Top-3 experiments
+
+{% for e in top3 -%}
+{{ loop.index }}. **{{ e.exp_id }}** (cv {{ "%.6f" | format(e.cv_score_mean) }}) — {{ e.hypothesis }}
+{% endfor %}
