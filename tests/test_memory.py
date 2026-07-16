@@ -48,6 +48,28 @@ def test_top5_is_best_first_for_minimize(populated) -> None:
     assert text.index("e0007") < text.index("e0004")
 
 
+def test_top5_is_best_first_for_maximize(comp_dir: Path, tmp_path: Path) -> None:
+    # Same ledger scores as `populated`, but a maximize bundle: highest CV must
+    # lead the Top-5 and be the ledger best. (metric stays mae; only direction
+    # is exercised here.)
+    from tests.conftest import write_bundle
+
+    write_bundle(comp_dir, metric_direction="maximize")
+    comp = load_bundle(comp_dir)
+    ledger = Ledger(tmp_path / "ledger.db")
+    for i, s in enumerate([5.0, 3.0, 4.0, 2.0, 6.0, 7.0, 1.0]):
+        exp_id = ledger.queue(
+            comp.slug,
+            f"experiment number {i} tests a distinct modelling idea",
+            {"family": f"fam{i % 3}"},
+        )
+        ledger.mark_running(exp_id)
+        ledger.complete(exp_id, s, 0.1, [s], 5.0, f"experiments/{comp.slug}/{exp_id}")
+    text = write_memory(comp, ledger, Budget()).read_text()
+    # best is 7.0 (e0006); it must appear before the 6.0 experiment (e0005)
+    assert text.index("e0006") < text.index("e0005")
+
+
 def test_memory_under_300_lines(populated) -> None:
     comp, ledger = populated
     text = write_memory(comp, ledger, Budget()).read_text()

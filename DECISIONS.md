@@ -45,3 +45,25 @@
   capital-S `Score` column; grading expects a lowercase `score` column
   (competitions/README.md), so the prep script normalized the file in place
   (BOM stripped, `Score` → `score`, other columns kept).
+- **2026-07-16 (s6e3)** First maximize-direction competition (ROC AUC). Audited
+  every direction-sensitive code path before relying on it: `grade_submission`
+  rank comparison, percentile, medal bands, `ledger.best`, MEMORY.md top-5,
+  RESULT.md top-3, and CLI best-experiment selection. All were already
+  direction-correct, but only `ledger.best` had a maximize test; added maximize
+  coverage (`TestGradingMaximize` in tests/test_submission.py incl. an
+  asymmetric-leaderboard rank test and Kaggle-style tie handling,
+  `test_top5_is_best_first_for_maximize` in tests/test_memory.py). No code
+  changes needed; 122 tests green.
+- **2026-07-16 (s6e3)** Same holdout adaptation as s3e14 (Kaggle publishes no
+  Playground private labels): `scripts/prepare_playground_s6e3.py`, seed 42,
+  run BEFORE the agent loop saw any data. 20% holdout (118,839 rows) carved
+  from the original train (594,194 rows); agent trains/CVs on the remaining
+  475,355. Holdout features are the operative `data/test.csv`, labels are
+  `private/solution.csv`, originals moved to `private/original_*.csv`. Reported
+  rank/percentile/medal against the real 4,143-team final LB is therefore an
+  ESTIMATE (same caveats as s3e14). Two adaptations for classification: the
+  holdout split is STRATIFIED on the target (matches the bundle's stratified
+  CV policy; churn rate 22.52% preserved on both sides), and the target
+  `Churn` was mapped Yes/No → 1/0 in every harness-visible file (the metric
+  registry and AUC need numeric labels; the mapping is loss-free and the
+  original untouched files retain the string labels).
