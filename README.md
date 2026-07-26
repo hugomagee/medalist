@@ -1,5 +1,7 @@
 # medalist
 
+[![CI](https://github.com/hugomagee/medalist/actions/workflows/ci.yml/badge.svg)](https://github.com/hugomagee/medalist/actions/workflows/ci.yml)
+
 A harness that lets an AI agent autonomously solve tabular data-science
 competitions end-to-end — EDA → feature engineering → training → error
 analysis → iteration → submission — with every experiment logged, budgeted,
