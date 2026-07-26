@@ -26,7 +26,7 @@ def blend(preds: list[FloatArray], weights: list[float] | None = None) -> FloatA
     else:
         w = np.asarray(weights, dtype=np.float64)
         w = w / w.sum()
-    return matrix @ w
+    return np.asarray(matrix @ w, dtype=np.float64)
 
 
 def rank_average(preds: list[FloatArray]) -> FloatArray:
