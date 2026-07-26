@@ -21,7 +21,7 @@ unblock exact grading).
 
 ```
 uv sync
-uv run pytest          # 122 tests
+uv run pytest          # 139 tests
 uv run medalist --help
 ```
 
@@ -35,7 +35,7 @@ assembling historical competition bundles is documented in
 |---|---|---|---|---|---|---|---|---|
 | synthetic-mae (M5 dry run, scripted agent) | regression | mae | 4 | 1.118 | 1.144 | 5/100 | top 5% | gold* |
 | playground-s3e14 (M6, live agent) | regression | mae | 13 | 342.49 | 335.77 | 601/1877 | top 32.0% | none† |
-| playground-series-s6e3 (live agent) | binary classification | auc | 16 | 0.91643 | 0.91709 | 655/4143 | top 15.8% | none† |
+| playground-series-s6e3 (live agent) | binary classification | auc | 17 | 0.91643 | 0.91709 | 655/4143 | top 15.8% | none† |
 
 \* Synthetic leaderboard — proves the plumbing, not competitive skill. The
 scripted "dumb agent" ran baseline → LightGBM → LightGBM+FE → blend with no
