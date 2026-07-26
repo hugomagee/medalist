@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from hypothesis import given, settings
+from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 
 from core.cv import make_folds
@@ -92,6 +92,8 @@ def test_stratified_partitions_exactly(n: int, k: int) -> None:
 @settings(max_examples=30, deadline=None)
 @given(n=n_samples, k=st.integers(min_value=2, max_value=4), group_size=st.integers(2, 8))
 def test_group_folds_never_split_a_group(n: int, k: int, group_size: int) -> None:
+    # GroupKFold requires n_groups >= n_splits; fewer groups is a caller error
+    assume(-(-n // group_size) >= k)
     df = _regression_df(n)
     df["grp"] = [i // group_size for i in range(n)]
     plan = make_folds(df, "target", "group", {"n_splits": k, "seed": 1}, group_column="grp")
