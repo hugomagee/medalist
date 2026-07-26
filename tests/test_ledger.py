@@ -144,3 +144,17 @@ class TestQueries:
         db = tmp_path / "ledger.db"
         exp_id = Ledger(db).queue("comp", HYP, {})
         assert Ledger(db).get(exp_id).hypothesis == HYP
+
+
+class TestReadErrors:
+    def test_get_nonexistent_experiment_raises(self, ledger: Ledger) -> None:
+        with pytest.raises(LedgerError, match="does not exist"):
+            ledger.get("e9999")
+
+    def test_best_rejects_unknown_direction(self, ledger: Ledger) -> None:
+        with pytest.raises(LedgerError, match="minimize.*maximize"):
+            ledger.best("c", direction="upward")
+
+    def test_transition_on_nonexistent_experiment_raises(self, ledger: Ledger) -> None:
+        with pytest.raises(LedgerError, match="does not exist"):
+            ledger.mark_running("e9999")

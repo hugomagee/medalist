@@ -59,3 +59,17 @@ def test_auc_handles_ties_like_sklearn() -> None:
     y = np.array([0, 0, 1, 1, 0, 1])
     p = np.array([0.5, 0.5, 0.5, 0.8, 0.2, 0.8])
     assert abs(score("auc", y, p) - skm.roc_auc_score(y, p)) < TOL
+
+
+def test_rmsle_rejects_negative_values() -> None:
+    with pytest.raises(ValueError, match="non-negative"):
+        score("rmsle", np.array([1.0, -2.0]), np.array([1.0, 2.0]))
+    with pytest.raises(ValueError, match="non-negative"):
+        score("rmsle", np.array([1.0, 2.0]), np.array([-1.0, 2.0]))
+
+
+def test_auc_requires_both_classes() -> None:
+    with pytest.raises(ValueError, match="both classes"):
+        score("auc", np.zeros(5), np.linspace(0, 1, 5))
+    with pytest.raises(ValueError, match="both classes"):
+        score("auc", np.ones(5), np.linspace(0, 1, 5))

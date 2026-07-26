@@ -1,9 +1,10 @@
 import numpy as np
 import pandas as pd
+import pytest
 from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 
-from core.cv import make_folds
+from core.cv import make_folds, validate_alignment
 
 SEED_PARAMS = {"n_splits": 4, "seed": 42}
 
@@ -113,3 +114,24 @@ def test_time_folds_never_leak_future_into_train(n: int, k: int) -> None:
     ts = df["ts"].to_numpy()
     for train_idx, valid_idx in plan.folds:
         assert ts[train_idx].max() <= ts[valid_idx].min()
+
+
+class TestValidateAlignment:
+    def test_accepts_aligned_finite_predictions(self) -> None:
+        validate_alignment(np.zeros(10), np.zeros(5), n_train=10, n_test=5)
+
+    def test_rejects_wrong_oof_length(self) -> None:
+        with pytest.raises(ValueError, match="misaligned OOF"):
+            validate_alignment(np.zeros(9), np.zeros(5), n_train=10, n_test=5)
+
+    def test_rejects_wrong_test_length(self) -> None:
+        with pytest.raises(ValueError, match="misaligned test"):
+            validate_alignment(np.zeros(10), np.zeros(6), n_train=10, n_test=5)
+
+    def test_rejects_nan_and_inf(self) -> None:
+        bad = np.array([0.0, np.nan, 1.0])
+        with pytest.raises(ValueError, match="NaN or inf"):
+            validate_alignment(bad, np.zeros(5), n_train=3, n_test=5)
+        bad_inf = np.array([0.0, np.inf, 1.0])
+        with pytest.raises(ValueError, match="NaN or inf"):
+            validate_alignment(np.zeros(3), bad_inf, n_train=3, n_test=3)
