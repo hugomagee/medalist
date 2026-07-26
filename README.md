@@ -11,6 +11,14 @@ human involvement. See [SPEC.md](SPEC.md) for the full design.
 
 ## Status: M1–M6 complete
 
+All six SPEC milestones are done: harness (M1–M4), scripted dry run (M5),
+and two live-agent runs on historical Playground competitions (M6). One
+thing remains blocked: grading against Kaggle's *true* private test labels,
+because Kaggle does not publish Playground solution files — Playground rows
+in the results table are therefore holdout-based estimates (see
+[#1](https://github.com/hugomagee/medalist/issues/1) for what data would
+unblock exact grading).
+
 ```
 uv sync
 uv run pytest          # 122 tests
