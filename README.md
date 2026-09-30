@@ -64,6 +64,6 @@ Python 3.12, uv, pandas, scikit learn, LightGBM, XGBoost, CatBoost, Optuna, SQLi
 
 ## Author
 
-Hugo Magee · MSc Business Analytics and Data Science, IE University · [LinkedIn](https://linkedin.com/in/hugo-magee-ooo) · hugomagee2002@gmail.com
+Hugo Magee · MSc Business Analytics and Data Science, IE University · [LinkedIn](https://linkedin.com/in/hugo-magee-ooo)
 
 MIT licence
