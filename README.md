@@ -21,7 +21,7 @@ unblock exact grading).
 
 ```
 uv sync
-uv run pytest          # 139 tests
+uv run pytest          # 148 tests
 uv run medalist --help
 ```
 
@@ -36,6 +36,7 @@ assembling historical competition bundles is documented in
 | synthetic-mae (M5 dry run, scripted agent) | regression | mae | 4 | 1.118 | 1.144 | 5/100 | top 5% | gold* |
 | playground-s3e14 (M6, live agent) | regression | mae | 13 | 342.49 | 335.77 | 601/1877 | top 32.0% | none† |
 | playground-series-s6e3 (live agent) | binary classification | auc | 17 | 0.91643 | 0.91709 | 655/4143 | top 15.8% | none† |
+| house-prices (live agent, real Kaggle test set) | regression | rmsle | 17 | 0.10333 | pending submission | — | — | n/a‡ |
 
 \* Synthetic leaderboard — proves the plumbing, not competitive skill. The
 scripted "dumb agent" ran baseline → LightGBM → LightGBM+FE → blend with no
@@ -47,6 +48,11 @@ test labels, so submissions are scored on a seeded 20% holdout carved from
 the original train before the agent loop starts, then located in the real
 final private leaderboard. See `reports/<slug>/RESULT.md` for the full
 caveats.
+
+‡ House Prices is a Getting Started competition with a rolling public
+leaderboard and no medals. It trains on the real train set and predicts the
+real Kaggle test set; the score comes from a real Kaggle submission. See
+`reports/house-prices/RESULT.md`.
 
 ## Limitations (honest)
 

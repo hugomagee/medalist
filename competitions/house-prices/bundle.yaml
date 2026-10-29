@@ -1,0 +1,22 @@
+slug: house-prices
+title: "House Prices - Advanced Regression Techniques (Ames, Iowa)"
+# Kaggle scores RMSE between log(predicted) and log(actual) SalePrice.
+# rmsle uses log1p; on prices of 3e4..8e5 the difference is < 1e-5.
+metric: rmsle
+metric_direction: minimize
+target_column: SalePrice
+id_column: Id
+files:
+  train: data/train.csv
+  test: data/test.csv
+  sample_submission: data/sample_submission.csv
+# 1,460 rows: 10 folds keeps each fold-model on 90% of the data and makes
+# the OOF view closer to the full-data refit used for the test predictions.
+cv_policy: kfold
+cv_params: {n_splits: 10, seed: 42}
+time_column: null
+group_column: null
+# Getting Started competition with a rolling leaderboard and no published
+# labels: grading is a real Kaggle submission, not a local private file.
+leaderboard: null
+private_labels: null
