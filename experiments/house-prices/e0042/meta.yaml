@@ -1,0 +1,3 @@
+hypothesis: "Small-leaf slow LightGBM with 25% column sampling improves e0036 (0.1202) to ~0.115"
+approach: {family: gbm-tuned, model_family: lightgbm}
+parent_id: e0036

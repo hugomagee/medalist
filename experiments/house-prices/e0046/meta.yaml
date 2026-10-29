@@ -1,0 +1,3 @@
+hypothesis: "Boosting shallow trees on the FGLS Lasso's inner-CV residuals captures interactions and beats e0040 (0.1061)"
+approach: {family: hybrid, model_family: lasso+gbr-residual, features_added: [fgls_salecondition_weights]}
+parent_id: e0040

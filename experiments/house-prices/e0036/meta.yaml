@@ -1,0 +1,3 @@
+hypothesis: "Domain FE (totals, ordinals, ages) plus outlier-free fitting improves default LightGBM over e0002"
+approach: {family: gbm-fe, model_family: lightgbm, features_added: [ames_base_frame, outlier_drop, edwards_partial_rule]}
+parent_id: e0035

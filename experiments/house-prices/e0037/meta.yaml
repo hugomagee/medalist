@@ -1,0 +1,3 @@
+hypothesis: "Nested-CV Lasso on log-skew-corrected, one-hot, robust-scaled features beats tuned-less GBMs (~0.112)"
+approach: {family: linear, model_family: lasso, features_added: [linear_prep_onehot_skew]}
+parent_id: e0036

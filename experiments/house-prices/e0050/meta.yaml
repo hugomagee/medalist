@@ -1,0 +1,3 @@
+hypothesis: "Final convex blend around the bagged hybrid e0048 plus diverse GBM/kernel members gives the most robust CV (<= 0.1033)"
+approach: {family: ensemble, model_family: convex-blend, ensemble_of: [e0039, e0041, e0042, e0043, e0044, e0048, e0049]}
+parent_id: e0047

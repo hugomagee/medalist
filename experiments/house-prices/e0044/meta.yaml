@@ -1,0 +1,3 @@
+hypothesis: "CatBoost with native categoricals is the strongest single GBM here (< 0.115) and diverse vs codes"
+approach: {family: gbm-tuned, model_family: catboost}
+parent_id: e0036

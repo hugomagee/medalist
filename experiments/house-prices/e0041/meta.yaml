@@ -1,0 +1,3 @@
+hypothesis: "Huber-loss GBR with shallow trees is robust to abnormal-sale noise and beats default LightGBM (0.1202)"
+approach: {family: gbm-tuned, model_family: sklearn-gbr-huber}
+parent_id: e0036

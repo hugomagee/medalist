@@ -1,0 +1,3 @@
+hypothesis: "Default LightGBM on raw features with a log1p target reaches roughly 0.13-0.14 RMSLE"
+approach: {family: gbm-raw, model_family: lightgbm}
+parent_id: e0034

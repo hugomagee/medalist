@@ -1,0 +1,3 @@
+hypothesis: "An RBF SVR captures smooth nonlinearity the linear members miss while staying robust on 1.4k rows"
+approach: {family: kernel, model_family: svr, features_added: [linear_prep_onehot_skew]}
+parent_id: e0037

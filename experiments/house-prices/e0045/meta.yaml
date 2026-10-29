@@ -1,0 +1,3 @@
+hypothesis: "A nested convex blend of linear, kernel and GBM members beats the best single member (0.1061) by >2%"
+approach: {family: ensemble, model_family: convex-blend, ensemble_of: [e0037, e0038, e0039, e0040, e0041, e0042, e0043, e0044]}
+parent_id: e0040

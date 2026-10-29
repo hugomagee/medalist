@@ -1,0 +1,3 @@
+hypothesis: "Depth-3 XGBoost with strong subsampling gives a GBM member near 0.115 that differs from LightGBM"
+approach: {family: gbm-tuned, model_family: xgboost}
+parent_id: e0036
