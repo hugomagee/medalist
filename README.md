@@ -2,76 +2,71 @@
 
 [![CI](https://github.com/hugomagee/medalist/actions/workflows/ci.yml/badge.svg)](https://github.com/hugomagee/medalist/actions/workflows/ci.yml)
 
-A harness that lets an AI agent autonomously solve tabular data-science
-competitions end-to-end — EDA → feature engineering → training → error
-analysis → iteration → submission — with every experiment logged, budgeted,
-and scored against a ground-truth verifier. Evaluated on finished Kaggle
-competitions so results grade against real historical leaderboards with zero
-human involvement. See [SPEC.md](SPEC.md) for the full design.
+A harness that lets an AI agent enter tabular data science competitions on its own, from first look at the data to final submission. The agent is the scientist. The harness is the lab that enforces the discipline the agent can't be trusted to keep itself.
 
-## Status: M1–M6 complete
+![Score progression across experiments on Playground S6E3](reports/playground-series-s6e3/progression.png)
 
-All six SPEC milestones are done: harness (M1–M4), scripted dry run (M5),
-and two live-agent runs on historical Playground competitions (M6). One
-thing remains blocked: grading against Kaggle's *true* private test labels,
-because Kaggle does not publish Playground solution files — Playground rows
-in the results table are therefore holdout-based estimates (see
-[#1](https://github.com/hugomagee/medalist/issues/1) for what data would
-unblock exact grading).
+## At a glance
 
-```
+**Input:** a competition bundle: training and test files, target column, ID column, scoring metric and a fixed cross validation policy (`competitions/<slug>/bundle.yaml`)
+
+**Transformation:** the agent writes and runs one experiment at a time: EDA, features, model, error analysis, then the next idea. The harness controls everything around it:
+* a holdout set is carved off **before** the agent sees any data, so the final grade can't leak
+* cross validation folds are fixed per competition, so every experiment is compared fairly
+* each experiment runs in a subprocess with a time limit and a total budget
+* every config, score and artifact goes into an append only SQLite ledger
+* the agent reads a digest of the ledger (`MEMORY.md`) before choosing its next experiment
+
+**Output:** a validated `submission.csv`, a report (`reports/<slug>/RESULT.md`) and a chart of score against experiment number
+
+**What I learned:** most of the value is in the guard rails, not the model. The harness has to still work when the agent is dumb, and not get in the way when it's smart.
+
+## Results
+
+| Competition | Task | Metric | Experiments | Score | Estimated rank |
+| :--- | :--- | :--- | :---: | :---: | :--- |
+| House Prices, Ames (live agent, real Kaggle submission) | regression | RMSLE | 17 | 0.11588 | 189 of 4,639 (top 4.1%), actual public leaderboard |
+| Playground S6E3, Telco churn (live agent) | classification | AUC | 17 | 0.91709 | 655 of 4,143 (top 15.8%) |
+| Playground S3E14 (live agent) | regression | MAE | 13 | 335.77 | 601 of 1,877 (top 32%) |
+| Synthetic dry run (scripted agent, no LLM) | regression | MAE | 4 | 1.144 | plumbing check only |
+
+**Why the ranks are estimates:** Kaggle doesn't publish the private test labels for Playground competitions. So each submission is scored on a seeded 20% holdout taken from the training data before the agent starts, and that score is placed on the real final leaderboard. On S6E3, bronze needed 0.91791, less than 0.001 away. Full caveats are in each `RESULT.md`, and [issue #1](https://github.com/hugomagee/medalist/issues/1) explains what data would allow exact grading.
+
+**House Prices is different:** it is a Getting Started competition with a rolling leaderboard, so the agent trained on the real training set and its submission was scored by Kaggle itself. Its rank is the actual public leaderboard position, not an estimate. Leaving out the 74 entries that score about 0 by submitting the publicly leaked answers, it is 115 of 4,565 (top 2.5%). See [reports/house-prices/RESULT.md](reports/house-prices/RESULT.md).
+
+## How to run
+
+```bash
 uv sync
 uv run pytest          # 148 tests
 uv run medalist --help
 ```
 
-The agent-facing loop is documented in [agent/AGENT.md](agent/AGENT.md);
-assembling historical competition bundles is documented in
-[competitions/README.md](competitions/README.md).
+The agent's operating manual is [agent/AGENT.md](agent/AGENT.md). How to build a competition bundle is in [competitions/README.md](competitions/README.md). The full design is in [SPEC.md](SPEC.md) and the decisions I made along the way are in [DECISIONS.md](DECISIONS.md).
 
-## Results
+## How the code is organised
 
-| competition | type | metric | experiments | best CV | private score | rank | percentile | medal |
-|---|---|---|---|---|---|---|---|---|
-| synthetic-mae (M5 dry run, scripted agent) | regression | mae | 4 | 1.118 | 1.144 | 5/100 | top 5% | gold* |
-| playground-s3e14 (M6, live agent) | regression | mae | 13 | 342.49 | 335.77 | 601/1877 | top 32.0% | none† |
-| playground-series-s6e3 (live agent) | binary classification | auc | 17 | 0.91643 | 0.91709 | 655/4143 | top 15.8% | none† |
-| house-prices (live agent, real Kaggle test set) | regression | rmsle | 17 | 0.10333 | 0.11588 (public) | 189/4639 | top 4.1% | n/a‡ |
+* `core/`: bundle loading, the sandboxed runner, CV policy, scoring, budget, ledger and submission checks
+* `strategies/`: reusable building blocks the agent can import (baselines, feature engineering, blending and stacking)
+* `agent/AGENT.md`: the rules the agent works under
+* `competitions/`: one bundle per competition
+* `reports/`: results, EDA and progression charts
+* `tests/`: 148 tests, including property based tests for CV and scoring, and a dry run with a scripted agent
 
-\* Synthetic leaderboard — proves the plumbing, not competitive skill. The
-scripted "dumb agent" ran baseline → LightGBM → LightGBM+FE → blend with no
-LLM involvement: baseline MAE 5.60 → best 1.12, CV within 2.3% of the
-private score.
+## Limitations
 
-† Playground ranks are ESTIMATES: Kaggle does not publish Playground private
-test labels, so submissions are scored on a seeded 20% holdout carved from
-the original train before the agent loop starts, then located in the real
-final private leaderboard. See `reports/<slug>/RESULT.md` for the full
-caveats.
+* Tabular and time series only. No deep learning, images, NLP or GPU competitions.
+* Grading needs ground truth assembled by hand. Where the private labels can't be rebuilt, percentile grading isn't possible.
+* The sandbox is a discipline boundary, not a security boundary. It stops honest mistakes in experiment code, not a determined attacker.
+* The time budget counts experiment runtime only, not the agent's thinking time between experiments.
+* Blending assumes all models share the same folds. The harness fixes folds per competition, so this holds unless the bundle's CV settings change mid run.
 
-‡ House Prices is a Getting Started competition with a rolling public
-leaderboard and no medals. It trains on the real train set and predicts the
-real Kaggle test set; the score is a real Kaggle public-LB submission
-(115/4565, top 2.5%, if the 74 leaked-label ~0 scores are excluded). See
-`reports/house-prices/RESULT.md`.
+## Stack
 
-## Limitations (honest)
+Python 3.12, uv, pandas, scikit learn, LightGBM, XGBoost, CatBoost, Optuna, SQLite, Typer, Jinja2, pytest, Hypothesis, ruff, mypy, GitHub Actions. The agent is Claude Code.
 
-- **Tabular/time-series only.** No deep learning, images, NLP, or GPU comps.
-- **Grading needs human-assembled ground truth.** Private labels for
-  Playground-style comps must be reconstructed from source datasets; where
-  that's impossible, percentile grading is unavailable.
-- **Synthetic leaderboard percentiles are not comparable** to real ones; the
-  M5 medal is a plumbing check.
-- **The sandbox is a discipline boundary, not a security boundary.** The
-  subprocess shares the interpreter and filesystem; chmod + static checks
-  stop honest-but-curious experiment code, not a motivated adversary.
-- **Static `private` check can false-positive** (e.g. macOS `/private/var`
-  temp paths); use relative paths inside `run.py`.
-- **Wall-clock budget** is tracked as the sum of experiment runtimes, not
-  session elapsed time; agent thinking time between experiments is uncounted.
-- **Ensemble/stacking assumes shared folds.** All members must come from the
-  same bundle CV policy (the harness fixes folds per competition, so this
-  holds unless bundle CV params change mid-run).
-- Timeseries CV maps unsorted input correctly, but duplicate timestamps at a
-  fold boundary can place equal-time rows in both train and valid.
+## Author
+
+Hugo Magee · MSc Business Analytics and Data Science, IE University · [LinkedIn](https://linkedin.com/in/hugo-magee-ooo)
+
+MIT licence
