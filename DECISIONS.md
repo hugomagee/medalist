@@ -67,3 +67,30 @@
   `Churn` was mapped Yes/No → 1/0 in every harness-visible file (the metric
   registry and AUC need numeric labels; the mapping is loss-free and the
   original untouched files retain the string labels).
+- **2026-10-29 (house-prices)** Kaggle "Getting Started" comp with a rolling
+  leaderboard and no published test labels, so the bundle uses the REAL
+  train/test (no holdout carve-out): all 1,460 labelled rows go to training,
+  and grading is a real Kaggle submission located in the public leaderboard
+  (4,639 teams on 2026-10-29; ~74 teams score ~0 by submitting the leaked
+  public Ames labels and are not comparable). `leaderboard`/`private_labels`
+  are null, so `medalist grade` does not apply. Reconstructing test labels
+  from the public De Cock dataset was deliberately NOT done: it is the leak
+  itself, and having it on disk would contaminate decisions.
+- **2026-10-29 (house-prices)** CV is 10-fold KFold (seed 42) rather than 5:
+  with 1,460 rows each fold-model sees 90% of the data, closer to the
+  full-data refit used for test predictions.
+- **2026-10-29 (house-prices)** Experiment ids are global across the ledger;
+  the first three runs used dirs e0001-e0003 and were refused before
+  executing (e0031-e0033, "dir != assigned id"), burning 3 of 25 slots.
+- **2026-10-29 (house-prices)** Outliers: the two >4000 sq ft Edwards
+  Partial sales (Ids 524, 1299; De Cock flags them as not reflecting market
+  value) are excluded from every FIT set inside `strategies/ames.py`, never
+  from scoring — they still get OOF predictions and count in every CV score.
+  Test Id 2550 matches the same feature pattern (Edwards, Partial,
+  GrLivArea > 4000, OverallQual 10). Rather than extrapolate a ~$500k+
+  price, rows in that feature-defined segment are predicted with the mean log
+  price of the segment's members in the fit set (a comparable-sales rule).
+  The rule is validated out-of-fold: 524 and 1299 fall in different folds,
+  and each is predicted from the other (OOF $160k / $185k vs actual
+  $185k / $160k). The segment definition is features-only, though it was
+  chosen after seeing the two outliers — documented here for that reason.

@@ -1,0 +1,3 @@
+hypothesis: "An FGLS SVR base + residual GBR is a strong (<0.106) hybrid whose errors differ from the Lasso hybrid"
+approach: {family: hybrid, model_family: svr+gbr-residual, features_added: [fgls_salecondition_weights]}
+parent_id: e0046

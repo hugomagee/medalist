@@ -1,0 +1,3 @@
+hypothesis: "Ridge keeps all correlated dummies (no selection) and gives a linear member less sparse than Lasso"
+approach: {family: linear, model_family: ridge, features_added: [linear_prep_onehot_skew]}
+parent_id: e0037

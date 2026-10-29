@@ -25,17 +25,20 @@ A harness that lets an AI agent enter tabular data science competitions on its o
 
 | Competition | Task | Metric | Experiments | Score | Estimated rank |
 | :--- | :--- | :--- | :---: | :---: | :--- |
+| House Prices, Ames (live agent, real Kaggle submission) | regression | RMSLE | 17 | 0.11588 | 189 of 4,639 (top 4.1%), actual public leaderboard |
 | Playground S6E3, Telco churn (live agent) | classification | AUC | 17 | 0.91709 | 655 of 4,143 (top 15.8%) |
 | Playground S3E14 (live agent) | regression | MAE | 13 | 335.77 | 601 of 1,877 (top 32%) |
 | Synthetic dry run (scripted agent, no LLM) | regression | MAE | 4 | 1.144 | plumbing check only |
 
 **Why the ranks are estimates:** Kaggle doesn't publish the private test labels for Playground competitions. So each submission is scored on a seeded 20% holdout taken from the training data before the agent starts, and that score is placed on the real final leaderboard. On S6E3, bronze needed 0.91791, less than 0.001 away. Full caveats are in each `RESULT.md`, and [issue #1](https://github.com/hugomagee/medalist/issues/1) explains what data would allow exact grading.
 
+**House Prices is different:** it is a Getting Started competition with a rolling leaderboard, so the agent trained on the real training set and its submission was scored by Kaggle itself. Its rank is the actual public leaderboard position, not an estimate. Leaving out the 74 entries that score about 0 by submitting the publicly leaked answers, it is 115 of 4,565 (top 2.5%). See [reports/house-prices/RESULT.md](reports/house-prices/RESULT.md).
+
 ## How to run
 
 ```bash
 uv sync
-uv run pytest          # 139 tests
+uv run pytest          # 148 tests
 uv run medalist --help
 ```
 
@@ -48,7 +51,7 @@ The agent's operating manual is [agent/AGENT.md](agent/AGENT.md). How to build a
 * `agent/AGENT.md`: the rules the agent works under
 * `competitions/`: one bundle per competition
 * `reports/`: results, EDA and progression charts
-* `tests/`: 139 tests, including property based tests for CV and scoring, and a dry run with a scripted agent
+* `tests/`: 148 tests, including property based tests for CV and scoring, and a dry run with a scripted agent
 
 ## Limitations
 

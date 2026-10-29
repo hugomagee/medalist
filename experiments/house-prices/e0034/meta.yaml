@@ -1,0 +1,2 @@
+hypothesis: "A constant median price sets the honest floor; any real model must beat ~0.40 RMSLE"
+approach: {family: baseline, model_family: constant}
