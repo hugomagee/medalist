@@ -1,0 +1,18 @@
+slug: playground-series-s6e10
+title: "Predicting Airline Satisfaction (Playground S6E10)"
+metric: auc
+metric_direction: maximize
+target_column: satisfaction
+id_column: id
+files:
+  train: data/train.csv
+  test: data/test.csv
+  sample_submission: data/sample_submission.csv
+cv_policy: stratified
+cv_params: {n_splits: 5, seed: 42}
+time_column: null
+group_column: null
+# Live competition (deadline 2026-10-31): no holdout carve-out, no local
+# labels. Grading is real Kaggle submissions; see DECISIONS.md.
+leaderboard: null
+private_labels: null

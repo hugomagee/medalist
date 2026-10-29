@@ -94,3 +94,46 @@
   and each is predicted from the other (OOF $160k / $185k vs actual
   $185k / $160k). The segment definition is features-only, though it was
   chosen after seeing the two outliers — documented here for that reason.
+- **2026-10-29 (s6e10)** Live Playground competition (deadline 2026-10-31
+  23:59 UTC), so like house-prices there is NO holdout carve-out: the agent
+  trains on the full Kaggle train (699,635 rows) and predicts the real test
+  (299,844); grading is real Kaggle submissions. `leaderboard` and
+  `private_labels` are null. `scripts/prepare_playground_s6e10.py` maps the
+  literal True/False target to 1/0 in the harness-visible `data/train.csv`;
+  untouched Kaggle files and the public source dataset live in `raw/`
+  (gitignored). The source dataset (arseniyshutko/binary-aviation-satisfaction-129k,
+  129,880 rows, public, allowed by the rules) is aligned to train's column
+  order with a 1/0 target in `data/original.csv`. Original rows may be used
+  to TRAIN or to build features, but never count in any CV score: the harness
+  scores only Kaggle-train OOF rows. CV: stratified 5-fold, seed 42.
+- **2026-10-29 (s6e10)** Budget raised via repo-root `budget.yaml`
+  (max_experiments 70, per_experiment_seconds 3600, total_wall_seconds
+  129600, min_reserve_experiments 3). The defaults (25 x 900 s, 4 h) are
+  sized for small data; at 700k rows a single tuned GBM takes 10-30 min and
+  the run spans ~52 h. Wall clock is still the sum of experiment runtimes, so
+  concurrent experiments each count their full runtime.
+- **2026-10-29 (s6e10)** Experiments may run two at a time
+  (`scripts/s6e10_launch.sh` waits for the ledger to assign each id before
+  starting the next, so dir names match ids). Thread count is passed via the
+  `S6E10_THREADS` env var. Caveat: `_PrivateGuard` restores private/ when
+  the first of two overlapping runs ends; harmless here because private/ is
+  empty for a live competition.
+- **2026-10-29 (s6e10)** GBM early stopping uses the outer validation fold
+  (standard Kaggle practice). At ~140k validation rows per fold the optimism
+  this adds to OOF AUC is far below the measured noise floor; best-iteration
+  counts are logged per fold in `result.json` extra.
+- **2026-10-29 (s6e10)** PyTorch 2.15 added to the venv as dependency group
+  `nn` (`uv add --group nn torch`) for the embedding-MLP members (MPS).
+  On macOS LightGBM and torch each load their own libomp; once a LightGBM
+  model had been fit in the same process, `torch.randperm` deadlocked in an
+  OpenMP barrier (e0064). Fix in `strategies/s6e10.py::mlp_fit_predict`:
+  permutations come from numpy and torch is pinned to one CPU thread (the
+  heavy work is on MPS). e0060 ran before the fix; its frozen run.py would
+  now draw different minibatch orders if re-run.
+- **2026-10-29 (s6e10)** Policy for runaway experiments: when an experiment
+  is provably going to hit the 3600 s cap (e0057 CatBoost at ~30-60 min per
+  fold) or is deadlocked (e0064), the agent kills it early and records why
+  in the ledger notes. The slot is spent either way; killing frees the lane.
+- **2026-10-29 (s6e10)** The brief said 22 features / 14 ratings; the data
+  has 21 features / 13 ratings (no "Inflight service" column in either the
+  Kaggle files or the public source). Every column is used.

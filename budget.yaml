@@ -1,0 +1,4 @@
+max_experiments: 70
+per_experiment_seconds: 3600
+total_wall_seconds: 129600
+min_reserve_experiments: 3

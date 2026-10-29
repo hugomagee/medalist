@@ -11,3 +11,4 @@ experiments/
 dist/
 .coverage
 .hypothesis/
+competitions/*/raw/

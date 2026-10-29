@@ -30,6 +30,9 @@ dev = [
     "pandas-stubs",
     "types-PyYAML",
 ]
+nn = [
+    "torch>=2.15.0",
+]
 
 [build-system]
 requires = ["hatchling"]
