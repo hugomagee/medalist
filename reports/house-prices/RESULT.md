@@ -2,9 +2,12 @@
 
 **Submission:** `reports/house-prices/submission.csv`, built from **e0050** (final convex blend).
 **10-fold CV RMSLE:** 0.10333 (fold mean ± 0.0150), pooled 0.10442.
-**Kaggle score:** not yet submitted (needs the account owner's go-ahead).
+**Kaggle public score: 0.11588** (submitted 2026-10-29, ref 57775555).
+**Rank:** ~189 / 4,639 teams (top 4.1%); ~115 / 4,565 (top 2.5%) excluding
+the 74 leaked-label scores (< 0.05). Ranks are located in the public
+leaderboard snapshot downloaded 2026-10-29.
 
-## Where this would land (CV-based estimate, not a grade)
+## Leaderboard context (pre-submission estimate)
 
 Public leaderboard on 2026-10-29: 4,639 teams. About 74 score ~0 by
 submitting the leaked public Ames labels; those are not comparable.
@@ -20,6 +23,8 @@ On this competition, honest public LB scores usually run ~0.005-0.015 above
 a well-built 10-fold CV with the two outliers handled, so a public score
 around 0.110-0.118 is the realistic range. The public LB is only 50% of the
 test set (~730 rows), so ±0.005 of luck either way is normal.
+
+Actual: CV 0.1033 -> public 0.1159 (gap 0.0126), inside the predicted range.
 
 ## Progression (17 scored experiments, 3 refused on a dir/id mismatch)
 

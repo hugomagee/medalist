@@ -36,7 +36,7 @@ assembling historical competition bundles is documented in
 | synthetic-mae (M5 dry run, scripted agent) | regression | mae | 4 | 1.118 | 1.144 | 5/100 | top 5% | gold* |
 | playground-s3e14 (M6, live agent) | regression | mae | 13 | 342.49 | 335.77 | 601/1877 | top 32.0% | none† |
 | playground-series-s6e3 (live agent) | binary classification | auc | 17 | 0.91643 | 0.91709 | 655/4143 | top 15.8% | none† |
-| house-prices (live agent, real Kaggle test set) | regression | rmsle | 17 | 0.10333 | pending submission | — | — | n/a‡ |
+| house-prices (live agent, real Kaggle test set) | regression | rmsle | 17 | 0.10333 | 0.11588 (public) | 189/4639 | top 4.1% | n/a‡ |
 
 \* Synthetic leaderboard — proves the plumbing, not competitive skill. The
 scripted "dumb agent" ran baseline → LightGBM → LightGBM+FE → blend with no
@@ -51,7 +51,8 @@ caveats.
 
 ‡ House Prices is a Getting Started competition with a rolling public
 leaderboard and no medals. It trains on the real train set and predicts the
-real Kaggle test set; the score comes from a real Kaggle submission. See
+real Kaggle test set; the score is a real Kaggle public-LB submission
+(115/4565, top 2.5%, if the 74 leaked-label ~0 scores are excluded). See
 `reports/house-prices/RESULT.md`.
 
 ## Limitations (honest)
