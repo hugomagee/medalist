@@ -12,7 +12,8 @@ while true; do
     sqlite3 ledger.db "select 1 from experiments where exp_id='$id'" | grep -q 1 && continue
     next=$id; nthr=${thr:-5}; break
   done < $Q
-  if [[ -n "$next" && $running -lt $LANES ]]; then
+  freepct=$(memory_pressure 2>/dev/null | awk -F': ' '/free percentage/ {gsub("%","",$2); print $2}')
+  if [[ -n "$next" && $running -lt $LANES && ${freepct:-0} -ge 45 ]]; then
     prev=$(printf "e%04d" $(( 10#${next#e} - 1 )))
     if sqlite3 ledger.db "select 1 from experiments where exp_id='$prev'" | grep -q 1; then
       scripts/s6e10_launch.sh $next $nthr

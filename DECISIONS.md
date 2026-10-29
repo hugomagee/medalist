@@ -137,3 +137,11 @@
 - **2026-10-29 (s6e10)** The brief said 22 features / 14 ratings; the data
   has 21 features / 13 ratings (no "Inflight service" column in either the
   Kaggle files or the public source). Every column is used.
+- **2026-10-29 (s6e10)** Memory incident: two concurrent fb_v3 experiments
+  (~5-6 GB each in float64) plus offline analysis jobs and desktop apps
+  exhausted the 16 GB machine; swap reached 16.4/17.4 GB and load ~250 for
+  roughly two hours (~18:50-20:45 UTC). e0074 was killed as too slow and
+  e0078/e0079 were killed mid-run and rerun as e0081/e0083. Fixes:
+  `fb_v3_32` stores static features as float32; the dispatcher only launches
+  when `memory_pressure` reports >= 45% free; launches set
+  OMP_WAIT_POLICY=PASSIVE; no offline jobs while two lanes run.

@@ -681,3 +681,214 @@ KEYS_V2 = {
     "AD_LR": [AD_, "Leg room service"], "AD_OB": [AD_, "Online boarding"],
     "AD_CK": [AD_, "Checkin service"], "AD_SC": [AD_, "Seat comfort"], "AD_A": [AD_, "Age"],
 }
+
+
+# --------------------------------------------------------------------------- ensembling
+
+
+def load_members(ids: list[str], base: str = "..") -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+    """OOF and test prediction matrices (rows x members) from sibling experiment dirs."""
+    oof = np.column_stack([pd.read_parquet(f"{base}/{i}/oof.parquet")["prediction"].to_numpy() for i in ids])
+    test = np.column_stack([pd.read_parquet(f"{base}/{i}/test_pred.parquet")["prediction"].to_numpy() for i in ids])
+    return oof, test
+
+
+def logit(p: NDArray[np.float64], eps: float = 1e-6) -> NDArray[np.float64]:
+    p = np.clip(p, eps, 1 - eps)
+    return np.log(p / (1 - p))
+
+
+def stack_logistic(oof: NDArray[np.float64], test: NDArray[np.float64], y: np.ndarray,
+                   folds: list[Fold], C: float = 1.0) -> tuple[FloatArray, FloatArray, FloatArray]:
+    """Fold-safe LR stack on member logits: fold k is predicted by an LR fit on the other
+    folds' OOF rows; test by an LR fit on all OOF rows. Returns (oof, test, full-fit coefs)."""
+    from sklearn.linear_model import LogisticRegression
+
+    Z, Zt = logit(oof), logit(test)
+    out = np.zeros(len(y))
+    for tr, va in folds:
+        m = LogisticRegression(C=C, max_iter=1000).fit(Z[tr], y[tr])
+        out[va] = m.predict_proba(Z[va])[:, 1]
+    m = LogisticRegression(C=C, max_iter=1000).fit(Z, y)
+    return out, m.predict_proba(Zt)[:, 1], np.append(m.coef_.ravel(), m.intercept_)
+
+
+def rank_mean(M: NDArray[np.float64]) -> FloatArray:
+    from scipy.stats import rankdata
+
+    return np.mean([rankdata(M[:, j]) / len(M) for j in range(M.shape[1])], axis=0)
+
+
+def og_same_distance_knn(O: pd.DataFrame, yo: np.ndarray, targets: list[pd.DataFrame],
+                         taus: tuple[float, ...] = (1.0, 2.0), cols: list[str] | None = None,
+                         prior: float = 2.0) -> list[pd.DataFrame]:
+    """For each target row: among ORIGINAL rows with the same Flight Distance, the label
+    mean weighted by exp(-mismatches/tau) over `cols` (default 13 ratings + 4 cats), shrunk
+    toward the original prior with `prior` pseudo-weight; also the max similarity (fewest
+    mismatches) and the label mean of the closest original rows. Only original labels used."""
+    cols = cols or (RATINGS + CATS)
+    yo = np.asarray(yo, dtype=np.float64)
+    g = float(yo.mean())
+    T = pd.concat(targets, ignore_index=True)
+    dt = T["Flight Distance"].to_numpy()
+    do = O["Flight Distance"].to_numpy()
+    At = T[cols].to_numpy(dtype=np.int16)
+    Ao = O[cols].to_numpy(dtype=np.int16)
+    res = {f"knnD_t{t:g}": np.full(len(T), g) for t in taus}
+    res["knnD_minmis"] = np.full(len(T), float(len(cols)))
+    res["knnD_best_y"] = np.full(len(T), g)
+    order_o = np.argsort(do, kind="stable")
+    uo, start_o = np.unique(do[order_o], return_index=True)
+    end_o = np.append(start_o[1:], len(do))
+    pos = {v: (s, e) for v, s, e in zip(uo, start_o, end_o, strict=True)}
+    order_t = np.argsort(dt, kind="stable")
+    ut, start_t = np.unique(dt[order_t], return_index=True)
+    end_t = np.append(start_t[1:], len(dt))
+    for v, s, e in zip(ut, start_t, end_t, strict=True):
+        if v not in pos:
+            continue
+        ti = order_t[s:e]
+        so, eo = pos[v]
+        oi = order_o[so:eo]
+        for c0 in range(0, len(ti), 4096):
+            tc = ti[c0 : c0 + 4096]
+            mis = (At[tc][:, None, :] != Ao[oi][None, :, :]).sum(axis=2).astype(np.float64)
+            yy = yo[oi]
+            for t in taus:
+                w = np.exp(-mis / t)
+                res[f"knnD_t{t:g}"][tc] = (w @ yy + prior * g) / (w.sum(axis=1) + prior)
+            mm = mis.min(axis=1)
+            res["knnD_minmis"][tc] = mm
+            best = mis == mm[:, None]
+            res["knnD_best_y"][tc] = (best * yy).sum(axis=1) / best.sum(axis=1)
+    full = pd.DataFrame(res)
+    out, s0 = [], 0
+    for t in targets:
+        out.append(full.iloc[s0 : s0 + len(t)].reset_index(drop=True))
+        s0 += len(t)
+    return out
+
+
+def digit_frame(df: pd.DataFrame) -> pd.DataFrame:
+    """Digit-chunk codes of Flight Distance (and Age's last digit) as integers, mimicking
+    how a token-based generator writes numbers: last 3 / last 2 digits, first 3 digits,
+    first 2 digits with length, middle two digits with length, units, tens, tail after 3."""
+    d = df["Flight Distance"].astype(np.int64)
+    s = d.astype(str)
+    ln = s.str.len().astype(np.int64)
+    out = pd.DataFrame(index=df.index)
+    out["dg_last3"] = d % 1000
+    out["dg_last2"] = d % 100
+    out["dg_first3"] = s.str[:3].astype(np.int64)
+    out["dg_first2_len"] = s.str[:2].astype(np.int64) * 10 + ln
+    out["dg_mid_len"] = ln * 100 + s.str[1:3].astype(np.int64)
+    out["dg_units"] = d % 10
+    out["dg_tens"] = (d // 10) % 10
+    out["dg_tail_len"] = ln * 10 + s.str[3:].replace("", "-1").astype(np.int64).clip(lower=-1) + 1
+    out["dg_len"] = ln
+    out["age_units"] = df["Age"].astype(np.int64) % 10
+    return out
+
+
+DIGIT_KEYS = {c: [c] for c in ["dg_last3", "dg_last2", "dg_first3", "dg_first2_len", "dg_mid_len",
+                               "dg_units", "dg_tens", "dg_tail_len", "age_units"]}
+
+
+V3_DIST_KEYS = {
+    "D": ["Flight Distance"], "DD": ["Departure Delay in Minutes"], "AD": ["Arrival Delay in Minutes"],
+    "D_T": ["Flight Distance", "Type of Travel"], "D_C": ["Flight Distance", "Class"],
+    "D_CT": ["Flight Distance", "Customer Type"],
+}
+
+
+def fb_v3(train_df: pd.DataFrame, test_df: pd.DataFrame) -> FeatureBuilder:
+    """The e0068 feature set: raw + original single/pair TE + teacher logit + digit codes
+    (+ their original TE) + per-fold Kaggle TE of distance/delay/digit keys + key freqs."""
+    fb = FeatureBuilder(train_df, test_df, key_te=False, og_key_te=False, freq=False)
+    dtr, dte = digit_frame(fb.X), digit_frame(fb.Xt)
+    fb.X = pd.concat([fb.X, dtr], axis=1)
+    fb.Xt = pd.concat([fb.Xt, dte], axis=1)
+    fb.S = pd.concat([fb.S, dtr], axis=1)
+    fb.St = pd.concat([fb.St, dte], axis=1)
+    og = load_original()
+    O = base_frame(og)
+    O = pd.concat([O, digit_frame(O)], axis=1)
+    a, b = og_stats_fast(O, og[TARGET].to_numpy(), list(DIGIT_KEYS.values()), [fb.X, fb.Xt])
+    fb.S = pd.concat([fb.S, a], axis=1)
+    fb.St = pd.concat([fb.St, b], axis=1)
+    keys = {**V3_DIST_KEYS, **DIGIT_KEYS}
+    fb.keys, fb.key_te = keys, True
+    fb.k_tr = {n: int_key(fb.X, c) for n, c in keys.items()}
+    fb.k_te = {n: int_key(fb.Xt, c) for n, c in keys.items()}
+    for n in V3_DIST_KEYS:
+        fr = pd.concat([fb.k_tr[n], fb.k_te[n]]).value_counts()
+        fb.S["freq_" + n] = fb.k_tr[n].map(fr).to_numpy()
+        fb.St["freq_" + n] = fb.k_te[n].map(fr).to_numpy()
+    return fb
+
+
+def original_rows_v3(fb: FeatureBuilder) -> tuple[pd.DataFrame, dict[str, pd.Series], np.ndarray]:
+    """Features for the ORIGINAL rows aligned with fb_v3's static columns, built so no
+    original row ever sees its own label: original-label stats and the teacher logit are
+    out-of-fold within the original (5-fold, seed 42 -- the teacher's own split), Kaggle
+    frequencies come from Kaggle train+test. Returns (static frame incl. is_original=1,
+    key series for the per-fold Kaggle TE, original labels)."""
+    from itertools import combinations
+    from sklearn.model_selection import StratifiedKFold
+
+    og = load_original()
+    O = base_frame(og).reset_index(drop=True)
+    O = pd.concat([O, digit_frame(O)], axis=1)
+    yo = og[TARGET].to_numpy()
+    static = pd.DataFrame(index=O.index)
+    groups = [[c] for c in FEATS] + [list(q) for q in combinations(TOP10, 2)]
+    parts = []
+    skf = StratifiedKFold(5, shuffle=True, random_state=42)
+    for a, b in skf.split(O, yo):
+        Ofit = O.iloc[a].copy()
+        Ofit[TARGET] = yo[a]
+        Oapp = O.iloc[b]
+        cols = [original_target_stats(Ofit, g, [Oapp])[0] for g in groups]
+        dg = og_stats_fast(O.iloc[a], yo[a], list(DIGIT_KEYS.values()), [Oapp])[0]
+        parts.append(pd.concat(cols + [dg], axis=1))
+    oof_feats = pd.concat(parts).sort_index()
+    eps = 1e-6
+    t = np.clip(fb.teacher_oof, eps, 1 - eps)
+    oof_feats["og_model"] = np.log(t / (1 - t))
+    k_o = {n: int_key(O, c) for n, c in fb.keys.items()}
+    for n in V3_DIST_KEYS:
+        fr = pd.concat([fb.k_tr[n], fb.k_te[n]]).value_counts()
+        oof_feats["freq_" + n] = k_o[n].map(fr).fillna(0).to_numpy()
+    full = pd.concat([O, oof_feats], axis=1)
+    missing = [c for c in fb.S.columns if c not in full.columns]
+    if missing:
+        raise ValueError(f"original rows missing columns: {missing[:10]}")
+    static = full[list(fb.S.columns)].astype(np.float32)
+    static["is_original"] = 1
+    return static, k_o, yo
+
+
+def fold_with_original(fb: FeatureBuilder, O_static: pd.DataFrame, k_o: dict[str, pd.Series],
+                       yo: np.ndarray, tr: NDArray[np.int64], va: NDArray[np.int64],
+                       ) -> tuple[pd.DataFrame, np.ndarray, pd.DataFrame, pd.DataFrame]:
+    """fb.fold plus the original rows appended to the training frame (Kaggle TE for the
+    original rows uses the Kaggle fold-train mapping). Returns (Xtr, ytr, Xva, Xte)."""
+    Xtr, Xva, Xte = fb.fold(tr, va)
+    _, (fo,) = key_features_fold({n: s.iloc[tr] for n, s in fb.k_tr.items()}, fb.y[tr], [k_o],
+                                 prior=fb.prior)
+    Ot = pd.concat([O_static.reset_index(drop=True), fo], axis=1)
+    for M in (Xtr, Xva, Xte):
+        M["is_original"] = 0
+    Ot = Ot[list(Xtr.columns)]
+    return pd.concat([Xtr, Ot], ignore_index=True), np.concatenate([fb.y[tr], yo]), Xva, Xte
+
+
+def fb_v3_32(train_df: pd.DataFrame, test_df: pd.DataFrame) -> FeatureBuilder:
+    """fb_v3 with the static feature frames stored as float32 (about half the memory; two
+    fb_v3 processes plus desktop apps exhausted 16 GB and thrashed swap on 2026-10-29).
+    Values are unchanged up to float32 rounding, which does not move LightGBM bin edges
+    in any meaningful way."""
+    fb = fb_v3(train_df, test_df)
+    fb.S = fb.S.astype(np.float32)
+    fb.St = fb.St.astype(np.float32)
+    return fb

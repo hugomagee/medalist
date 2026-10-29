@@ -3,7 +3,7 @@
 # Runs one experiment in the background, logging to experiments/<slug>/<id>/run.out.
 cd "$(dirname "$0")/.."
 exp=$1; thr=$2; shift 2
-S6E10_THREADS=$thr nohup uv run medalist run playground-series-s6e10 --exp $exp "$@" \
+OMP_WAIT_POLICY=PASSIVE S6E10_THREADS=$thr nohup uv run medalist run playground-series-s6e10 --exp $exp "$@" \
   > experiments/playground-series-s6e10/$exp/run.out 2>&1 &
 # wait until the ledger has queued this id so concurrent launches get the right ids
 for i in {1..60}; do
