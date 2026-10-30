@@ -1,0 +1,3 @@
+hypothesis: "A teacher LightGBM trained only on the original data encodes the full clean conditional P(satisfied|x); its logit as a feature (on top of e0055's original TE features) lifts OOF AUC over e0055 beyond the noise floor."
+approach: {family: original-teacher-feature, model_family: lightgbm, features_added: [og_model logit, og single/pair TE from e0055]}
+parent_id: e0055

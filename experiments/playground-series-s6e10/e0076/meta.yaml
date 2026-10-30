@@ -1,0 +1,3 @@
+hypothesis: "With distance/digit key encodings present, appending the original rows (flagged) to every fold-train set lifts Kaggle-only OOF AUC by >0.0003 over the identical model without them (paired arms)."
+approach: {family: original-append, model_family: lightgbm, features_added: [is_original, Kaggle key TE], arms: [no_orig, with_orig]}
+parent_id: e0054

@@ -1,0 +1,2 @@
+hypothesis: "A per-fold constant prevalence predictor is the honest floor: AUC must be exactly 0.5."
+approach: {family: baseline, model_family: constant}

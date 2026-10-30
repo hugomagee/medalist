@@ -152,3 +152,10 @@
   A keep-awake hold is now requested from the desktop app for the rest of
   the run. About 8 h of the schedule was lost; the timeline was compressed
   (no new feature families on 30 Oct afternoon, only members + stacks).
+- **2026-10-30 (s6e10)** Final selection: e0101 (best CV 0.961538, public 0.96095)
+  and e0091 (CV 0.961425, public 0.96089; broader fb_v3-based member set as a
+  hedge). The run stopped adding members at 17:20 UTC on 30 Oct, a day before
+  the deadline: the stack had saturated (last three stacks within 0.00011 CV,
+  each new member < 0.00002), every hypothesis on the list had been tested,
+  and the machine kept losing power or sleeping. 19 budget slots remain unused.
+  Public notebooks and submission files were never downloaded or read.

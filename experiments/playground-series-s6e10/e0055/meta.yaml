@@ -1,0 +1,3 @@
+hypothesis: "The original dataset's per-value and per-pair target means (and counts) encode the clean label mechanism the synthetic generator blurred; as features they lift OOF AUC over e0052 beyond the noise floor."
+approach: {family: original-te-features, model_family: lightgbm, features_added: [og_single_te_n x22, og_pair_te_n x45]}
+parent_id: e0052

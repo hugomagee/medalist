@@ -1,0 +1,3 @@
+hypothesis: "A fold-safe LR stack of the six strongest diverse members (2 LightGBM, XGBoost, 2 NNs, all-pairs) beats the best single e0070 by >0.0002 CV, and the gain carries to the public LB."
+approach: {family: ensemble-stack, model_family: logistic-stack, ensemble_of: [e0070, e0073, e0071, e0069, e0061, e0068]}
+parent_id: e0070

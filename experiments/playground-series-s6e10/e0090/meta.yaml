@@ -1,0 +1,3 @@
+hypothesis: "Stacking all 14 strong members (LR on logits vs a LightGBM stacker with segment context) beats the 6-member stack e0077 (0.961315) by >0.0001, and the LightGBM stacker beats LR if members are segment-specialised."
+approach: {family: ensemble-stack, model_family: lr-or-lgb-stacker, ensemble_of: [e0088, e0070, e0086, e0085, e0082, e0089, e0084, e0083, e0073, e0087, e0075, e0061, e0069, e0071]}
+parent_id: e0077

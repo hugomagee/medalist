@@ -1,0 +1,3 @@
+hypothesis: "Label noise is higher for atypical rows; profile frequencies (Kaggle train+test) and original counts let the GBM shrink atypical rows toward 0.5, beating e0068 by more than the noise floor."
+approach: {family: density-features, model_family: lightgbm, features_added: [pfreq_*, pog_n_*, pog_te_* for 5 profile keys]}
+parent_id: e0068

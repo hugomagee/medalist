@@ -1,0 +1,3 @@
+hypothesis: "Appending the 129,880 original rows (is_original flag) to each fold's training set gives the trees the clean generating signal and lifts Kaggle-only OOF AUC above e0052 by more than the noise floor."
+approach: {family: original-append, model_family: lightgbm, features_added: [is_original], extra_arms: [orig_weight_0.5]}
+parent_id: e0052

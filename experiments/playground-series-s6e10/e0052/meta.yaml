@@ -1,0 +1,3 @@
+hypothesis: "LightGBM on the 22 raw features reaches ~0.962 CV (the public plateau); three seeds measure the run-to-run AUC noise floor."
+approach: {family: gbm-raw, model_family: lightgbm, features_added: [], hyperparams: {lr: 0.05, leaves: 63}}
+parent_id: e0051

@@ -1,0 +1,3 @@
+hypothesis: "The generator conditions labels on digit chunks of Flight Distance (last-3-digit groups are more overdispersed than exact values); digit codes plus their Kaggle and original TEs beat e0063 by more than 0.0003."
+approach: {family: digit-tokens, model_family: lightgbm, features_added: [dg_* codes, te_dg_*, og_dg_*_te/n, age_units]}
+parent_id: e0063

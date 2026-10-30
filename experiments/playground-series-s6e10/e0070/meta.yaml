@@ -1,0 +1,3 @@
+hypothesis: "e0068 early-stops at ~250 rounds at lr 0.05; lr 0.02 with 127 leaves, feature_fraction 0.5 and L2 5 explores more and beats e0068 by more than the noise floor."
+approach: {family: gbm-tuned, model_family: lightgbm, features_added: [], hyperparams: {lr: 0.02, leaves: 127, ff: 0.5, l2: 5}}
+parent_id: e0068

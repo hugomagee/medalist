@@ -1,0 +1,3 @@
+hypothesis: "Residuals of e0059 grouped by individual Flight Distance values are hugely overdispersed (z=33.6); fold-safe per-value target encoding of distance (and delays, distance x categoricals) captures this and beats e0059 by >0.0005."
+approach: {family: high-card-te, model_family: lightgbm, features_added: [te_D, te_DD, te_AD, te_D_T, te_D_C, te_D_CT, freq_*]}
+parent_id: e0059

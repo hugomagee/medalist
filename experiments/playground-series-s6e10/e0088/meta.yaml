@@ -1,0 +1,3 @@
+hypothesis: "fb_v3 holds only top-10 original pairs and one teacher; stack weights show e0061 (all pairs+triples) and the teacher bank carry complementary signal, so fb_v4 lifts the single LightGBM over e0070 by >0.0001."
+approach: {family: original-te-features, model_family: lightgbm, features_added: [og TE all pairs, og TE top-8 triples, teacher bank x6], hyperparams: {ff: 0.3}}
+parent_id: e0070

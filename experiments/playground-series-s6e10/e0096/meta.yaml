@@ -1,0 +1,3 @@
+hypothesis: "e0088 is the top-weighted stack member; two more seeds of it (3-seed bag with e0088) add >0.00003 to the stack."
+approach: {family: gbm-seed-bag, model_family: lightgbm, seeds: [1, 2]}
+parent_id: e0088

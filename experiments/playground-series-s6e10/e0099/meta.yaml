@@ -1,0 +1,3 @@
+hypothesis: "e0097 (fb_v4 NN) is the best single model and NN bags still gain ~1e-4/seed; 4 new seeds averaged with e0097 add >0.00003 to the stack."
+approach: {family: nn-seed-bag, model_family: torch-mlp, seeds: 4}
+parent_id: e0097

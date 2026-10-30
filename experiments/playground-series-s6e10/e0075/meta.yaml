@@ -1,0 +1,3 @@
+hypothesis: "Numeric-only CatBoost (oblivious trees) on the e0068 feature set lands within 0.0003 of LightGBM and is less correlated with it than XGBoost is, adding to the stack."
+approach: {family: catboost-numeric, model_family: catboost, hyperparams: {lr: 0.08, depth: 8, rsm: 0.5}}
+parent_id: e0068

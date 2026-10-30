@@ -1,0 +1,3 @@
+hypothesis: "Kaggle-label TE reflects the generator (the per-value distance TE was the biggest single gain); fold-safe Kaggle TE of all non-distance pairs and top-8 triples lifts the fb_v4 LightGBM above e0088 (0.961112) by >0.0002."
+approach: {family: kaggle-pair-te, model_family: lightgbm, features_added: [kte pairs x171, kte triples x56]}
+parent_id: e0088

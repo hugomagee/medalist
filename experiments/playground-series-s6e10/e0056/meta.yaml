@@ -1,0 +1,3 @@
+hypothesis: "Ratings are categorical in the generator (6 levels, non-monotone effects); declaring ratings, categoricals and Age as LightGBM categorical lifts OOF AUC over e0052 beyond the noise floor."
+approach: {family: gbm-categorical, model_family: lightgbm, features_added: [], categorical: [ratings, cats, Age]}
+parent_id: e0052

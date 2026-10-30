@@ -1,0 +1,3 @@
+hypothesis: "Giving the embedding MLP the original-label TE features and teacher logit lifts it by >0.001 over e0060 (as they did for LightGBM) while keeping it structurally different from the trees."
+approach: {family: nn-embedding-mlp, model_family: torch-mlp, features_added: [og single/pair TE+n, og_model]}
+parent_id: e0060

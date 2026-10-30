@@ -1,0 +1,3 @@
+hypothesis: "One more seed of the top-weighted fb_v4 LightGBM (2-seed bag with e0088) adds >0.00003 to the stack; run alone so it fits the 3600 s cap."
+approach: {family: gbm-seed-bag, model_family: lightgbm, seeds: [7]}
+parent_id: e0088

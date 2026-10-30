@@ -1,0 +1,3 @@
+hypothesis: "Original rows helped XGBoost and the NN; e0092's all-categorical CatBoost with original rows appended (seed 7) beats e0092 (0.961044) and adds stack diversity."
+approach: {family: original-append, model_family: catboost, features_added: [is_original, original rows], hyperparams: {max_ctr_complexity: 3}}
+parent_id: e0092

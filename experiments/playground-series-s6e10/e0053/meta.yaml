@@ -1,0 +1,3 @@
+hypothesis: "Row-wise rating aggregates (sum, std, min/max, counts of 0/5) and delay transforms add signal trees find hard to assemble from 14 separate ratings: CV beats e0052 by more than the noise floor."
+approach: {family: gbm-fe, model_family: lightgbm, features_added: [r_sum, r_std, r_min, r_max, r_n0, r_n5, r_n_le2, delay_diff, log_dep, log_arr, delayed, arr_na, log_dist]}
+parent_id: e0052

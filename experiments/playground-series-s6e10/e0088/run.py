@@ -1,0 +1,20 @@
+"""B8: e0070 LightGBM (lr 0.02, 127 leaves, L2 5; ff 0.3 for the wider set) on fb_v4 = fb_v3 +
+original-label TE of all column pairs + top-8 triples + 6-teacher bank."""
+from strategies.s6e10 import cv_loop, fb_v4, lgb_fit_predict
+
+PARAMS = {"learning_rate": 0.02, "num_leaves": 127, "min_data_in_leaf": 100,
+          "feature_fraction": 0.3, "bagging_fraction": 0.7, "bagging_freq": 1,
+          "lambda_l2": 5.0, "max_bin": 255}
+
+
+def run(train_df, test_df, cv_splitter, metric):
+    folds = cv_splitter.split(train_df)
+    fb = fb_v4(train_df, test_df)
+    y = fb.y
+
+    def fold_fn(k, tr, va):
+        Xtr, Xva, Xte = fb.fold(tr, va)
+        pv, pt, it, imp = lgb_fit_predict(Xtr, y[tr], Xva, y[va], Xte, PARAMS, early_stopping=400)
+        return pv, pt, {"iters": it, "importances": imp}
+
+    return cv_loop(y, folds, len(fb.Xt), fold_fn, "lgb-v4")

@@ -26,7 +26,7 @@ A harness that lets an AI agent enter tabular data science competitions on its o
 | Competition | Task | Metric | Experiments | Score | Estimated rank |
 | :--- | :--- | :--- | :---: | :---: | :--- |
 | House Prices, Ames (live agent, real Kaggle submission) | regression | RMSLE | 17 | 0.11588 | 189 of 4,639 (top 4.1%), actual public leaderboard |
-| Playground S6E10, airline satisfaction (live agent, real Kaggle submissions) | classification | AUC | 48 | 0.96093 (public) | ~1,290 of 3,554 (~top 36%), actual public leaderboard |
+| Playground S6E10, airline satisfaction (live agent, real Kaggle submissions) | classification | AUC | 51 | 0.96095 (public) | 1,269 of 3,591 (top 35.3%), actual public leaderboard |
 | Playground S6E3, Telco churn (live agent) | classification | AUC | 17 | 0.91709 | 655 of 4,143 (top 15.8%) |
 | Playground S3E14 (live agent) | regression | MAE | 13 | 335.77 | 601 of 1,877 (top 32%) |
 | Synthetic dry run (scripted agent, no LLM) | regression | MAE | 4 | 1.144 | plumbing check only |

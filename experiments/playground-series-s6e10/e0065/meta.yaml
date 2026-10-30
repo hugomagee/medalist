@@ -1,0 +1,3 @@
+hypothesis: "Teachers that see different feature subsets or model families (esp. one that ignores the shifted delay/distance columns) give the Kaggle model complementary priors; the 6-teacher bank beats single-teacher e0059 by more than the noise floor."
+approach: {family: original-teacher-feature, model_family: lightgbm, features_added: [t_lgb_full, t_lgb_nodelay, t_lgb_rc, t_lgb_r, t_cat_full, t_lr_onehot]}
+parent_id: e0059

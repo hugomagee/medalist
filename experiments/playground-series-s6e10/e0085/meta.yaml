@@ -1,0 +1,3 @@
+hypothesis: "Appending the original rows helps XGBoost as it did LightGBM in e0076: e0071's config with original rows beats e0071 (0.960940) by >0.0001."
+approach: {family: original-append, model_family: xgboost, features_added: [is_original, original rows]}
+parent_id: e0071

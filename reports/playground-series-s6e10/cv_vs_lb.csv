@@ -1,0 +1,8 @@
+file,description,cv_auc,public_lb,date
+e0101.csv,"e0101 FINAL LR stack of 9 (fb_v4 NN x2 bags, fb_v4 LGBM x2 seeds, CatBoost all-cat, orig-row NN/XGB, all-pairs), CV 0.961538",0.9615379390932212,0.96095,2026-10-30 17:19:07.627000
+e0098.csv,"e0098 LR stack of 7 (fb_v4 NN+LGBM, CatBoost all-cat, orig-row NN/XGB, all-pairs), CV 0.961508",0.9615283038012381,0.96093,2026-10-30 16:28:10.600000
+e0091.csv,"e0091 LR stack of 14 members (GBMs, NNs, original-row variants), CV 0.961425",0.9614253433443108,0.96089,2026-10-30 11:02:29.640000
+e0077.csv,"e0077 LR stack (e0070,e0073,e0071,e0069,e0061,e0068), CV 0.961315",0.9613146668436385,0.96077,2026-10-29 18:00:26.743000
+e0063.csv,"e0063 e0059 + fold-safe per-value Flight Distance/delay TE, CV 0.960805",0.9608053890900328,0.96020,2026-10-29 16:31:21.880000
+e0059.csv,"e0059 LGBM + original pair TE + original-teacher logit, CV 0.960153",0.9601525114197971,0.95964,2026-10-29 16:12:41.323000
+e0052.csv,"e0052 LightGBM raw 22 features, CV 0.958881",0.9588810701575946,0.95843,2026-10-29 15:56:13.070000

@@ -1,0 +1,3 @@
+hypothesis: "A lean 7-member LR stack built around the three strongest, structurally different members (fb_v4 NN, fb_v4 LightGBM, all-categorical CatBoost) plus original-row NN/XGB and all-pairs beats e0091 (0.961425) by >0.00005."
+approach: {family: ensemble-stack, model_family: logistic-stack, ensemble_of: [e0097, e0088, e0092, e0089, e0094, e0085, e0061]}
+parent_id: e0091

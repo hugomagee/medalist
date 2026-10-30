@@ -1,0 +1,3 @@
+hypothesis: "49% of train rows share their full 13-rating profile with another row and 27% match an original row on ratings+cats (matched label AUC 0.90); fold-safe target means of these high-order keys give the GBM a 17-way interaction it cannot build itself, lifting OOF AUC over e0052 by >0.0005."
+approach: {family: high-order-key-te, model_family: lightgbm, features_added: [te_R, te_RC, te_RCT, te_RCA, og_te_*, og_n_*, freq_*]}
+parent_id: e0052

@@ -1,0 +1,3 @@
+hypothesis: "A per-feature embedding MLP learns smooth multi-way rating interactions differently from trees; it reaches within 0.002 of e0052 and its OOF is diverse enough (corr < 0.98) to help a blend."
+approach: {family: nn-embedding-mlp, model_family: torch-mlp, features_added: [embeddings x21, 5 numerics]}
+parent_id: e0052

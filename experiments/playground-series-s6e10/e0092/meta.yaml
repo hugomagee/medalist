@@ -1,0 +1,3 @@
+hypothesis: "CatBoost with all columns categorical (CTR combinations up to 3) beat raw LightGBM by +0.0012 on a 150k subsample; with the teacher and original-label TEs as numeric inputs it beats e0088 (0.961112) and gets large stack weight."
+approach: {family: catboost-allcat, model_family: catboost, features_added: [21 cat cols, og TE, og_model], hyperparams: {lr: 0.1, depth: 6, max_ctr_complexity: 3}}
+parent_id: e0057

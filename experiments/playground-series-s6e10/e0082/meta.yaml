@@ -1,0 +1,3 @@
+hypothesis: "Appending the original rows (features built without their own labels) to e0070's training sets adds the +0.0002 seen in e0076's paired arms on top of the original-label features, beating e0070 by >0.0001."
+approach: {family: original-append, model_family: lightgbm, features_added: [is_original, original rows], hyperparams: {lr: 0.02, leaves: 127}}
+parent_id: e0070

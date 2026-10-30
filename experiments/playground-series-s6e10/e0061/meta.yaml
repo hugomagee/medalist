@@ -1,0 +1,3 @@
+hypothesis: "e0055's gain came from original-label pair statistics; extending them to all 210 pairs plus 20 top-6 triples captures more of the generator's interactions and beats e0055 by more than the noise floor."
+approach: {family: original-te-features, model_family: lightgbm, features_added: [og pair te/n x210, og triple te x20], hyperparams: {feature_fraction: 0.5}}
+parent_id: e0055

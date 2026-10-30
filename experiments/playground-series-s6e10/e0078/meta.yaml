@@ -1,0 +1,3 @@
+hypothesis: "A wider NN (1024-512-256, dropout 0.4; +0.0002 in an offline fold-0 screen) bagged over 4 new seeds beats e0073 (3-seed base net) by >0.0002 CV."
+approach: {family: nn-embedding-mlp, model_family: torch-mlp, seeds: 4, hyperparams: {hidden: [1024, 512, 256], dropout: 0.4}}
+parent_id: e0073

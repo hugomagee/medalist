@@ -1,0 +1,3 @@
+hypothesis: "CatBoost treating every raw column as categorical (ordered TS plus automatic feature combinations) models the low-cardinality survey data better than LightGBM, beating e0052 OOF AUC beyond the noise floor."
+approach: {family: catboost-allcat, model_family: catboost, features_added: [cat copies of 22 cols], hyperparams: {lr: 0.1, depth: 7}}
+parent_id: e0052
