@@ -892,3 +892,56 @@ def fb_v3_32(train_df: pd.DataFrame, test_df: pd.DataFrame) -> FeatureBuilder:
     fb.S = fb.S.astype(np.float32)
     fb.St = fb.St.astype(np.float32)
     return fb
+
+
+TOP8 = ["Online boarding", "Inflight wifi service", "Type of Travel", "Class", "Customer Type",
+        "Inflight entertainment", "Seat comfort", "Leg room service"]
+
+
+def fb_v4(train_df: pd.DataFrame, test_df: pd.DataFrame) -> FeatureBuilder:
+    """fb_v3_32 + original-label TE (no counts) for all 210 column pairs not already present
+    and all 56 triples of the top-8 columns, + the 6-teacher bank logits. float32."""
+    from itertools import combinations
+
+    fb = fb_v3_32(train_df, test_df)
+    og = load_original()
+    O = base_frame(og)
+    yo = og[TARGET].to_numpy()
+    have = set(fb.S.columns)
+    pairs = [list(p) for p in combinations(FEATS, 2)
+             if "og_" + "__".join(clean(c) for c in p) + "_te" not in have]
+    triples = [list(t) for t in combinations(TOP8, 3)]
+    a, b = og_stats_fast(O, yo, pairs + triples, [fb.X[FEATS], fb.Xt[FEATS]], counts=False)
+    (t_tr, t_te), _ = teacher_bank(O, yo, [fb.X[FEATS], fb.Xt[FEATS]])
+    fb.S = pd.concat([fb.S, a.astype(np.float32), t_tr.astype(np.float32)], axis=1)
+    fb.St = pd.concat([fb.St, b.astype(np.float32), t_te.astype(np.float32)], axis=1)
+    return fb
+
+
+def kaggle_pair_te_fold(fb: FeatureBuilder, groups: list[list[str]], tr: NDArray[np.int64],
+                        va: NDArray[np.int64], prior: float = 20.0
+                        ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Fold-safe Kaggle-label TE for many column groups (nested inner OOF on fold-train rows,
+    full fold-train mapping for valid/test), float32."""
+    ytr = fb.y[tr].astype(np.float64)
+    g = float(ytr.mean())
+    rng = np.random.RandomState(42)
+    part = rng.randint(0, 5, len(tr))
+    out_tr, out_va, out_te = {}, {}, {}
+    for cols in groups:
+        name = "kte_" + "__".join(clean(c) for c in cols)
+        k_all = int_key(fb.X, cols).to_numpy()
+        k_te = int_key(fb.Xt, cols).to_numpy()
+        ktr, kva = k_all[tr], k_all[va]
+        enc = np.empty(len(tr), dtype=np.float32)
+        for f in range(5):
+            fit = part != f
+            st = pd.DataFrame({"k": ktr[fit], "y": ytr[fit]}).groupby("k")["y"].agg(["sum", "count"])
+            m = (st["sum"] + prior * g) / (st["count"] + prior)
+            enc[~fit] = pd.Series(ktr[~fit]).map(m).fillna(g).to_numpy(dtype=np.float32)
+        st = pd.DataFrame({"k": ktr, "y": ytr}).groupby("k")["y"].agg(["sum", "count"])
+        m = (st["sum"] + prior * g) / (st["count"] + prior)
+        out_tr[name] = enc
+        out_va[name] = pd.Series(kva).map(m).fillna(g).to_numpy(dtype=np.float32)
+        out_te[name] = pd.Series(k_te).map(m).fillna(g).to_numpy(dtype=np.float32)
+    return pd.DataFrame(out_tr), pd.DataFrame(out_va), pd.DataFrame(out_te)

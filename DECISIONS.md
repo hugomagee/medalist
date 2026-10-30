@@ -145,3 +145,10 @@
   `fb_v3_32` stores static features as float32; the dispatcher only launches
   when `memory_pressure` reports >= 45% free; launches set
   OMP_WAIT_POLICY=PASSIVE; no offline jobs while two lanes run.
+- **2026-10-30 (s6e10)** The Mac idle-slept overnight (~22:00-05:00 UTC,
+  `pmset -g log`). Python's subprocess timeout uses a monotonic clock that
+  stops during sleep, so the 3600 s cap never fired; e0080/e0081 recorded
+  only ~320 s of awake time in ~8 h and were killed and rerun as e0082/e0083.
+  A keep-awake hold is now requested from the desktop app for the rest of
+  the run. About 8 h of the schedule was lost; the timeline was compressed
+  (no new feature families on 30 Oct afternoon, only members + stacks).
